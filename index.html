@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="UTF-8">
+<title>Zahtev za nabavku</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600;700&display=swap');
+
+:root{
+  --paper:#EAEBE4;
+  --card:#F7F7F2;
+  --ink:#1E2A2E;
+  --ink-soft:#4A5559;
+  --steel:#35566B;
+  --steel-dark:#243D4C;
+  --safety:#C0762A;
+  --line:#CBCFC5;
+  --line-soft:#DEE0D8;
+  --danger:#A8432F;
+  --good:#3F6B4A;
+  --radius:3px;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'IBM Plex Sans',sans-serif;
+  font-size:14px;
+  -webkit-font-smoothing:antialiased;
+}
+.app{max-width:1180px;margin:0 auto;padding:28px 24px 60px;}
+
+/* header */
+.masthead{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  border-bottom:3px solid var(--ink);
+  padding-bottom:14px;margin-bottom:26px;
+  flex-wrap:wrap;gap:10px;
+}
+.masthead h1{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:26px;font-weight:700;letter-spacing:0.02em;
+  margin:0;text-transform:uppercase;
+}
+.masthead .sub{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11.5px;color:var(--ink-soft);letter-spacing:0.04em;
+}
+.brand-tag{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--steel);
+  border:1.5px solid var(--steel);padding:4px 10px;border-radius:var(--radius);
+  letter-spacing:0.06em;text-transform:uppercase;white-space:nowrap;
+}
+
+/* layout */
+.grid{display:grid;grid-template-columns:1.15fr 1fr;gap:22px;align-items:start;}
+@media(max-width:880px){.grid{grid-template-columns:1fr;}}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:20px 22px;
+}
+.card h2{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:14px;text-transform:uppercase;letter-spacing:0.08em;
+  margin:0 0 16px;padding-bottom:10px;border-bottom:1px solid var(--line-soft);
+  color:var(--steel-dark);
+}
+
+/* plate - the signature element */
+.plate{
+  display:flex;gap:0;align-items:stretch;
+  background:var(--steel-dark);
+  border-radius:var(--radius);
+  overflow:hidden;margin-bottom:18px;
+  font-family:'IBM Plex Mono',monospace;
+}
+.plate .seg{
+  padding:10px 14px;color:#EEF1EC;position:relative;
+  border-right:1px solid rgba(255,255,255,0.15);
+}
+.plate .seg:last-child{border-right:none;background:var(--steel);}
+.plate .seg .val{font-size:19px;font-weight:700;letter-spacing:0.03em;line-height:1;}
+.plate .seg .lbl{font-size:8.5px;letter-spacing:0.1em;opacity:0.7;text-transform:uppercase;margin-top:4px;display:block;}
+
+label{
+  display:block;font-size:11.5px;font-weight:600;color:var(--ink-soft);
+  text-transform:uppercase;letter-spacing:0.05em;margin:0 0 5px;
+}
+input[type=text],input[type=number],select,textarea{
+  width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:var(--radius);
+  background:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13.5px;color:var(--ink);
+}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--steel);outline-offset:1px;}
+.field{margin-bottom:14px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.hint{font-size:11px;color:var(--ink-soft);margin-top:4px;}
+.err{font-size:11.5px;color:var(--danger);margin-top:4px;font-weight:500;}
+
+/* spec table */
+table.spec{width:100%;border-collapse:collapse;margin-bottom:10px;}
+table.spec th{
+  text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:0.05em;
+  color:var(--ink-soft);padding:0 6px 6px;font-weight:600;
+}
+table.spec td{padding:4px 6px 4px 0;vertical-align:top;}
+table.spec td input{padding:7px 8px;font-size:13px;}
+.col-opis{width:auto;}
+.col-jm{width:90px;}
+.col-kol{width:90px;}
+.col-del{width:30px;}
+.rm-btn{
+  background:none;border:none;color:var(--danger);cursor:pointer;font-size:16px;
+  line-height:1;padding:6px;border-radius:var(--radius);
+}
+.rm-btn:hover{background:rgba(168,67,47,0.1);}
+.add-row{
+  background:none;border:1px dashed var(--line);color:var(--steel-dark);
+  padding:8px;width:100%;border-radius:var(--radius);cursor:pointer;
+  font-size:12.5px;font-weight:600;letter-spacing:0.03em;margin-bottom:16px;
+}
+.add-row:hover{border-color:var(--steel);background:rgba(53,86,107,0.06);}
+
+.btn{
+  font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:13px;
+  padding:11px 18px;border-radius:var(--radius);border:none;cursor:pointer;
+  letter-spacing:0.02em;
+}
+.btn-primary{background:var(--steel-dark);color:#fff;width:100%;}
+.btn-primary:hover{background:var(--steel);}
+.btn-primary:disabled{background:#9AA3A6;cursor:not-allowed;}
+.btn-ghost{background:none;border:1px solid var(--line);color:var(--ink);padding:7px 12px;font-size:12px;}
+.btn-ghost:hover{border-color:var(--steel);color:var(--steel-dark);}
+
+/* list */
+.list{display:flex;flex-direction:column;gap:10px;max-height:640px;overflow-y:auto;padding-right:2px;}
+.item{
+  border:1px solid var(--line);background:#fff;border-radius:var(--radius);
+  padding:12px 14px;
+}
+.item-top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;}
+.item-code{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:15px;color:var(--steel-dark);}
+.item-date{font-size:11px;color:var(--ink-soft);}
+.item-nalog{font-size:12px;color:var(--ink-soft);margin-top:4px;}
+.item-actions{margin-top:10px;display:flex;gap:8px;}
+.empty{color:var(--ink-soft);font-size:13px;padding:20px 0;text-align:center;}
+.loading{color:var(--ink-soft);font-size:13px;padding:20px 0;text-align:center;}
+
+/* modal / print doc */
+.overlay{
+  position:fixed;inset:0;background:rgba(20,26,28,0.55);
+  display:flex;align-items:flex-start;justify-content:center;
+  padding:30px 16px;overflow-y:auto;z-index:50;
+}
+.doc{
+  background:#fff;width:210mm;max-width:100%;min-height:280mm;
+  padding:18mm 16mm;box-shadow:0 10px 40px rgba(0,0,0,0.3);
+  font-family:'IBM Plex Sans',sans-serif;color:#1a1a1a;
+}
+.doc-toolbar{
+  width:210mm;max-width:100%;display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px;
+}
+.doc h2{
+  font-family:'Space Grotesk',sans-serif;font-size:20px;text-transform:uppercase;
+  letter-spacing:0.05em;margin:0 0 4px;
+}
+.doc .doc-sub{font-size:11px;color:#666;margin-bottom:18px;font-family:'IBM Plex Mono',monospace;}
+.doc-meta{display:grid;grid-template-columns:1fr 1fr;gap:14px 24px;margin-bottom:20px;padding-bottom:16px;border-bottom:1.5px solid #1a1a1a;}
+.doc-meta .k{font-size:9.5px;text-transform:uppercase;letter-spacing:0.06em;color:#777;margin-bottom:2px;}
+.doc-meta .v{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;}
+.doc table{width:100%;border-collapse:collapse;margin-bottom:24px;}
+.doc table th{
+  text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:0.05em;
+  border-bottom:1.5px solid #1a1a1a;padding:6px 8px;color:#444;
+}
+.doc table td{padding:8px;border-bottom:1px solid #ddd;font-size:13px;}
+.doc table td.num{text-align:right;font-family:'IBM Plex Mono',monospace;}
+.sign-row{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:60px;}
+.sign-block .line{border-top:1px solid #1a1a1a;margin-top:36px;padding-top:6px;font-size:11px;color:#555;}
+
+@media print{
+  body *{visibility:hidden;}
+  .overlay,.overlay *{visibility:visible;}
+  .overlay{position:absolute;inset:auto;padding:0;background:none;}
+  .doc-toolbar{display:none;}
+  .doc{box-shadow:none;width:auto;padding:10mm 12mm;}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="masthead">
+    <div>
+      <h1>Zahtev za nabavku</h1>
+      <div class="sub">Evidencija i izrada dokumenata za nabavku materijala</div>
+    </div>
+    <div class="brand-tag" id="countTag">— zahteva evidentirano</div>
+  </div>
+
+  <div class="grid">
+    <!-- FORM -->
+    <div class="card">
+      <h2>Novi zahtev</h2>
+
+      <div class="plate">
+        <div class="seg"><span class="val" id="plateGradiliste">—</span><span class="lbl">Gradilište</span></div>
+        <div class="seg"><span class="val" id="plateGodina">—</span><span class="lbl">Godina</span></div>
+        <div class="seg"><span class="val" id="plateBroj">—</span><span class="lbl">Redni broj</span></div>
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label for="gradiliste">Oznaka gradilišta (901–999)</label>
+          <input type="number" id="gradiliste" min="901" max="999" placeholder="npr. 915">
+        </div>
+        <div class="field">
+          <label for="godina">Godina</label>
+          <input type="text" id="godina" readonly>
+        </div>
+      </div>
+      <div class="err" id="errGradiliste"></div>
+
+      <div class="field">
+        <label for="nalog">Nalog za realizaciju</label>
+        <input type="text" id="nalog" placeholder="npr. 12/34/56">
+        <div class="hint">Niz brojeva odvojenih kosom crtom.</div>
+        <div class="err" id="errNalog"></div>
+      </div>
+
+      <div class="field">
+        <label>Specifikacija</label>
+        <table class="spec">
+          <thead><tr><th class="col-opis">Opis</th><th class="col-jm">Jed. mere</th><th class="col-kol">Količina</th><th class="col-del"></th></tr></thead>
+          <tbody id="specBody"></tbody>
+        </table>
+        <button type="button" class="add-row" id="addRowBtn">+ Dodaj stavku</button>
+        <div class="err" id="errSpec"></div>
+      </div>
+
+      <button type="button" class="btn btn-primary" id="saveBtn">Sačuvaj zahtev</button>
+    </div>
+
+    <!-- LIST -->
+    <div class="card">
+      <h2>Prethodni zahtevi</h2>
+      <div id="listWrap"><div class="loading">Učitavanje…</div></div>
+    </div>
+  </div>
+</div>
+
+<div id="modalRoot"></div>
+
+<script>
+/* ========================================================================
+   PODEŠAVANJE: nalepi URL svog Google Apps Script Web App-a ovde.
+   Uputstvo kako da ga dobiješ nalazi se u fajlu UPUTSTVO.md
+   ======================================================================== */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx7xQ3BCzyKnsvB9QP1zN8CnGazxFA49cwXXMUe1C9urRn1X0Ed4N-r3UcNQSFfrVLMnQ/exec";
+
+let DATA = { requests: [] };
+let specRows = [];
+
+async function apiList(){
+  const res = await fetch(`${SCRIPT_URL}?action=list`);
+  if(!res.ok) throw new Error('Greška pri učitavanju.');
+  return res.json();
+}
+async function apiAdd(payload){
+  const res = await fetch(SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'add', ...payload })
+  });
+  if(!res.ok) throw new Error('Greška pri čuvanju.');
+  return res.json();
+}
+async function apiDelete(id){
+  const res = await fetch(SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'delete', id })
+  });
+  if(!res.ok) throw new Error('Greška pri brisanju.');
+  return res.json();
+}
+
+const $ = id => document.getElementById(id);
+const yy = new Date().getFullYear().toString().slice(-2);
+$('godina').value = yy;
+
+function uid(){ return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+function newSpecRow(){ return { id: uid(), opis:'', jm:'', kolicina:'' }; }
+
+function renderPlate(){
+  const g = $('gradiliste').value.trim();
+  $('plateGradiliste').textContent = g ? g : '—';
+  $('plateGodina').textContent = yy;
+  $('plateBroj').textContent = '???';
+}
+
+function renderSpecRows(){
+  const body = $('specBody');
+  body.innerHTML = '';
+  specRows.forEach((row, idx) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="col-opis"><input type="text" data-id="${row.id}" data-field="opis" value="${escapeHtml(row.opis)}" placeholder="npr. Kabl PP00 5X2,5mm2"></td>
+      <td class="col-jm"><input type="text" data-id="${row.id}" data-field="jm" value="${escapeHtml(row.jm)}" placeholder="kom / m / kg"></td>
+      <td class="col-kol"><input type="number" min="0" step="any" data-id="${row.id}" data-field="kolicina" value="${escapeHtml(row.kolicina)}" placeholder="0"></td>
+      <td class="col-del">${specRows.length>1 ? `<button type="button" class="rm-btn" data-rm="${row.id}" title="Ukloni stavku">×</button>` : ''}</td>
+    `;
+    body.appendChild(tr);
+  });
+  body.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      const row = specRows.find(r=>r.id===e.target.dataset.id);
+      if(row) row[e.target.dataset.field] = e.target.value;
+    });
+  });
+  body.querySelectorAll('[data-rm]').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      specRows = specRows.filter(r=>r.id!==e.target.dataset.rm);
+      renderSpecRows();
+    });
+  });
+}
+
+function escapeHtml(s){ return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function resetForm(){
+  $('gradiliste').value = '';
+  $('nalog').value = '';
+  $('errGradiliste').textContent = '';
+  $('errNalog').textContent = '';
+  $('errSpec').textContent = '';
+  specRows = [newSpecRow()];
+  renderSpecRows();
+  renderPlate();
+}
+
+function validate(){
+  let ok = true;
+  const g = parseInt($('gradiliste').value, 10);
+  $('errGradiliste').textContent = '';
+  $('errNalog').textContent = '';
+  $('errSpec').textContent = '';
+
+  if(!g || g < 901 || g > 999){
+    $('errGradiliste').textContent = 'Unesite broj gradilišta od 901 do 999.';
+    ok = false;
+  }
+  const nalog = $('nalog').value.trim();
+  if(!/^\d+(\/\d+)*$/.test(nalog)){
+    $('errNalog').textContent = 'Format: brojevi odvojeni kosom crtom, npr. 12/34/56.';
+    ok = false;
+  }
+  const validRows = specRows.filter(r => r.opis.trim() && r.jm.trim() && r.kolicina !== '' && !isNaN(parseFloat(r.kolicina)));
+  if(validRows.length === 0){
+    $('errSpec').textContent = 'Unesite bar jednu kompletnu stavku (opis, jedinica mere, količina).';
+    ok = false;
+  }
+  return ok;
+}
+
+async function loadData(){
+  if(SCRIPT_URL.includes('PASTE_YOUR')){
+    $('listWrap').innerHTML = '<div class="empty">Nije podešen SCRIPT_URL u fajlu index.html — pogledaj UPUTSTVO.md.</div>';
+    $('countTag').textContent = 'Nepovezano';
+    return;
+  }
+  try{
+    const data = await apiList();
+    DATA.requests = data.requests || [];
+  }catch(e){
+    $('listWrap').innerHTML = '<div class="empty">Greška pri učitavanju podataka. Proveri SCRIPT_URL i internet konekciju.</div>';
+    $('countTag').textContent = 'Greška';
+    return;
+  }
+  $('countTag').textContent = DATA.requests.length + ' zahteva evidentirano';
+  renderList();
+  renderPlate();
+}
+
+function renderList(){
+  const wrap = $('listWrap');
+  if(DATA.requests.length === 0){
+    wrap.innerHTML = '<div class="empty">Još uvek nema evidentiranih zahteva.</div>';
+    return;
+  }
+  const sorted = [...DATA.requests].sort((a,b)=> b.createdAt - a.createdAt);
+  wrap.innerHTML = `<div class="list">${sorted.map(r => `
+    <div class="item">
+      <div class="item-top">
+        <span class="item-code">${escapeHtml(r.redniBroj)}</span>
+        <span class="item-date">${new Date(r.createdAt).toLocaleDateString('sr-RS')}</span>
+      </div>
+      <div class="item-nalog">Nalog za realizaciju: ${escapeHtml(r.nalog)} · ${r.stavke.length} stavk${r.stavke.length===1?'a':(r.stavke.length<5?'e':'i')}</div>
+      <div class="item-actions">
+        <button class="btn-ghost" data-view="${r.id}">Prikaži / štampaj</button>
+        <button class="btn-ghost" data-del="${r.id}">Obriši</button>
+      </div>
+    </div>
+  `).join('')}</div>`;
+
+  wrap.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click', e=>openDoc(e.target.dataset.view)));
+  wrap.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click', async e=>{
+    if(confirm('Obrisati ovaj zahtev? Ova radnja se ne može poništiti.')){
+      const id = e.target.dataset.del;
+      try{
+        await apiDelete(id);
+        DATA.requests = DATA.requests.filter(r=>r.id !== id);
+        $('countTag').textContent = DATA.requests.length + ' zahteva evidentirano';
+        renderList();
+      }catch(err){
+        alert('Brisanje nije uspelo. Proveri internet konekciju i pokušaj ponovo.');
+      }
+    }
+  }));
+}
+
+function openDoc(id){
+  const r = DATA.requests.find(x=>x.id===id);
+  if(!r) return;
+  const totalRow = r.stavke.map(s => `
+    <tr><td>${escapeHtml(s.opis)}</td><td>${escapeHtml(s.jm)}</td><td class="num">${escapeHtml(s.kolicina)}</td></tr>
+  `).join('');
+  $('modalRoot').innerHTML = `
+    <div class="overlay" id="overlay">
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <div class="doc-toolbar">
+          <button class="btn-ghost" id="closeDoc">Zatvori</button>
+          <button class="btn btn-primary" style="width:auto;" id="printDoc">Štampaj / sačuvaj PDF</button>
+        </div>
+        <div class="doc">
+          <h2>Zahtev za nabavku</h2>
+          <div class="doc-sub">Dokument generisan ${new Date(r.createdAt).toLocaleString('sr-RS')}</div>
+          <div class="doc-meta">
+            <div><div class="k">Redni broj</div><div class="v">${escapeHtml(r.redniBroj)}</div></div>
+            <div><div class="k">Nalog za realizaciju</div><div class="v">${escapeHtml(r.nalog)}</div></div>
+            <div><div class="k">Oznaka gradilišta</div><div class="v">${escapeHtml(r.gradiliste)}</div></div>
+            <div><div class="k">Godina</div><div class="v">${escapeHtml(r.godina)}</div></div>
+          </div>
+          <table>
+            <thead><tr><th>Opis</th><th>Jedinica mere</th><th style="text-align:right;">Količina</th></tr></thead>
+            <tbody>${totalRow}</tbody>
+          </table>
+          <div class="sign-row">
+            <div class="sign-block"><div class="line">Podneo / datum</div></div>
+            <div class="sign-block"><div class="line">Odobrio / datum</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  $('closeDoc').addEventListener('click', ()=> $('modalRoot').innerHTML = '');
+  $('printDoc').addEventListener('click', ()=> window.print());
+  $('overlay').addEventListener('click', e=>{ if(e.target.id==='overlay') $('modalRoot').innerHTML=''; });
+}
+
+$('gradiliste').addEventListener('input', renderPlate);
+$('addRowBtn').addEventListener('click', ()=>{ specRows.push(newSpecRow()); renderSpecRows(); });
+
+$('saveBtn').addEventListener('click', async ()=>{
+  if(SCRIPT_URL.includes('PASTE_YOUR')){
+    alert('Nije podešen SCRIPT_URL u fajlu index.html — pogledaj UPUTSTVO.md.');
+    return;
+  }
+  if(!validate()) return;
+  $('saveBtn').disabled = true;
+  $('saveBtn').textContent = 'Čuvanje…';
+
+  const g = parseInt($('gradiliste').value, 10);
+  const nalog = $('nalog').value.trim();
+  const validRows = specRows.filter(r => r.opis.trim() && r.jm.trim() && r.kolicina !== '' && !isNaN(parseFloat(r.kolicina)))
+    .map(r => ({ opis: r.opis.trim(), jm: r.jm.trim(), kolicina: r.kolicina }));
+
+  try{
+    const result = await apiAdd({
+      gradiliste: String(g),
+      godina: yy,
+      nalog,
+      stavke: validRows
+    });
+    if(result && result.request){
+      DATA.requests.push(result.request);
+      $('countTag').textContent = DATA.requests.length + ' zahteva evidentirano';
+      renderList();
+      resetForm();
+    }else{
+      throw new Error('Neispravan odgovor servera.');
+    }
+  }catch(err){
+    alert('Čuvanje nije uspelo. Proveri internet konekciju i SCRIPT_URL, pa pokušaj ponovo.');
+  }
+  $('saveBtn').disabled = false;
+  $('saveBtn').textContent = 'Sačuvaj zahtev';
+});
+
+resetForm();
+loadData();
+</script>
+</body>
+</html>
