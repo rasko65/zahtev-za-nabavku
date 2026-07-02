@@ -232,18 +232,12 @@ table.spec td input{padding:7px 8px;font-size:13px;}
         <div class="seg"><span class="val" id="plateBroj">—</span><span class="lbl">Redni broj</span></div>
       </div>
 
-      <div class="row2">
-        <div class="field">
-          <label for="gradiliste">Oznaka gradilišta</label>
-          <select id="gradiliste">
-            <option value="">— izaberi gradilište —</option>
-          </select>
-          <div class="hint" id="gradilisteNaziv">&nbsp;</div>
-        </div>
-        <div class="field">
-          <label for="godina">Godina</label>
-          <input type="text" id="godina" readonly>
-        </div>
+      <div class="field">
+        <label for="gradiliste">Oznaka gradilišta</label>
+        <select id="gradiliste">
+          <option value="">— izaberi gradilište —</option>
+        </select>
+        <div class="hint" id="gradilisteNaziv">&nbsp;</div>
       </div>
       <div class="err" id="errGradiliste"></div>
 
@@ -294,6 +288,11 @@ async function apiList(){
   if(!res.ok) throw new Error('Greška pri učitavanju.');
   return res.json();
 }
+async function apiPeek(gradiliste){
+  const res = await fetch(`${SCRIPT_URL}?action=peek&gradiliste=${encodeURIComponent(gradiliste)}`);
+  if(!res.ok) throw new Error('Greška pri učitavanju broja.');
+  return res.json();
+}
 async function apiAdd(payload){
   const res = await fetch(SCRIPT_URL, {
     method: 'POST',
@@ -313,7 +312,6 @@ async function apiDelete(id){
 
 const $ = id => document.getElementById(id);
 const yy = new Date().getFullYear().toString().slice(-2);
-$('godina').value = yy;
 
 const GRADILISTA = [
   { code:'901', naziv:'DIREKCIJA' },
@@ -399,17 +397,38 @@ populateGradilisteSelect();
 $('gradiliste').addEventListener('change', ()=>{
   const naziv = nazivGradilista($('gradiliste').value);
   $('gradilisteNaziv').textContent = naziv || '\u00A0';
+  refreshNextBrojPreview();
 });
 
 function uid(){ return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 
 function newSpecRow(){ return { id: uid(), opis:'', jm:'', kolicina:'' }; }
 
+let nextBrojPreview = null;
+
 function renderPlate(){
   const g = $('gradiliste').value.trim();
   $('plateGradiliste').textContent = g ? g : '—';
   $('plateGodina').textContent = yy;
-  $('plateBroj').textContent = '???';
+  $('plateBroj').textContent = nextBrojPreview ? String(nextBrojPreview).padStart(3,'0') : '···';
+}
+
+async function refreshNextBrojPreview(){
+  const g = $('gradiliste').value;
+  if(!g){
+    nextBrojPreview = null;
+    renderPlate();
+    return;
+  }
+  try{
+    const data = await apiPeek(g);
+    if(data && data.next){
+      nextBrojPreview = data.next;
+      renderPlate();
+    }
+  }catch(e){
+    // tiho zanemari - broj će svakako biti tačno dodeljen prilikom čuvanja
+  }
 }
 
 function renderSpecRows(){
@@ -495,6 +514,7 @@ async function loadData(){
   $('countTag').textContent = DATA.requests.length + ' zahteva evidentirano';
   renderList();
   renderPlate();
+  refreshNextBrojPreview();
 }
 
 function renderList(){
@@ -602,6 +622,7 @@ $('saveBtn').addEventListener('click', async ()=>{
       $('countTag').textContent = DATA.requests.length + ' zahteva evidentirano';
       renderList();
       resetForm();
+      refreshNextBrojPreview();
     }else{
       throw new Error('Neispravan odgovor servera.');
     }
