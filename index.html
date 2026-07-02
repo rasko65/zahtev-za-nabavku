@@ -489,7 +489,7 @@ function renderSpecRows(){
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="col-rb">${idx + 1}</td>
-      <td class="col-opis"><input type="text" data-id="${row.id}" data-field="opis" value="${escapeHtml(row.opis)}" placeholder="npr. Cementna malterna mešavina"></td>
+      <td class="col-opis"><input type="text" data-id="${row.id}" data-field="opis" value="${escapeHtml(row.opis)}" placeholder="npr. Kabl PP00 5X2,5mm"></td>
       <td class="col-jm"><input type="text" data-id="${row.id}" data-field="jm" value="${escapeHtml(row.jm)}" placeholder="kom / m / kg"></td>
       <td class="col-kol"><input type="number" min="0" step="any" data-id="${row.id}" data-field="kolicina" value="${escapeHtml(row.kolicina)}" placeholder="0"></td>
       <td class="col-od"><input type="number" min="0" step="any" data-id="${row.id}" data-field="odPostojeceg" value="${escapeHtml(row.odPostojeceg)}" placeholder="0"></td>
