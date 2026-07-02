@@ -54,8 +54,7 @@ body{
 }
 
 /* layout */
-.grid{display:grid;grid-template-columns:1.15fr 1fr;gap:22px;align-items:start;}
-@media(max-width:880px){.grid{grid-template-columns:1fr;}}
+.grid{display:grid;grid-template-columns:1fr;gap:22px;align-items:start;}
 
 .card{
   background:var(--card);
@@ -109,15 +108,15 @@ table.spec th{
 }
 table.spec td{padding:4px 6px 4px 0;vertical-align:top;}
 table.spec td input{padding:7px 8px;font-size:13px;}
-.col-rb{width:26px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:12.5px;text-align:center;padding-top:11px;}
+.col-rb{width:34px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:12.5px;text-align:center;padding-top:11px;}
 .col-opis{width:auto;}
-.col-jm{width:62px;}
-.col-kol{width:58px;}
-.col-od{width:62px;}
-.col-zan{width:62px;}
-.col-rok{width:130px;}
-.col-atest{width:75px;}
-.col-del{width:26px;}
+.col-jm{width:80px;}
+.col-kol{width:80px;}
+.col-od{width:90px;}
+.col-zan{width:90px;}
+.col-rok{width:150px;}
+.col-atest{width:85px;}
+.col-del{width:34px;}
 .zan-val{
   display:block;padding:7px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;
   font-weight:600;color:var(--steel-dark);background:#EEF0E9;border-radius:var(--radius);
@@ -242,7 +241,7 @@ table.spec td input{padding:7px 8px;font-size:13px;}
         <div class="seg"><span class="val" id="plateBroj">—</span><span class="lbl">Redni broj</span></div>
       </div>
 
-      <div class="field">
+      <div class="field" style="max-width:480px;">
         <label for="gradiliste">Oznaka gradilišta</label>
         <select id="gradiliste">
           <option value="">— izaberi gradilište —</option>
@@ -251,7 +250,7 @@ table.spec td input{padding:7px 8px;font-size:13px;}
       </div>
       <div class="err" id="errGradiliste"></div>
 
-      <div class="field">
+      <div class="field" style="max-width:480px;">
         <label for="nalog">Nalog za realizaciju</label>
         <select id="nalog">
           <option value="">— izaberi nalog —</option>
