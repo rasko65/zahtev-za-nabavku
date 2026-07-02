@@ -160,6 +160,7 @@ table.spec td input{padding:7px 8px;font-size:13px;}
   padding:18mm 16mm;box-shadow:0 10px 40px rgba(0,0,0,0.3);
   font-family:'IBM Plex Sans',sans-serif;color:#1a1a1a;
 }
+.doc-outer{display:flex;flex-direction:column;align-items:center;}
 .doc-toolbar{
   width:210mm;max-width:100%;display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px;
 }
@@ -181,12 +182,31 @@ table.spec td input{padding:7px 8px;font-size:13px;}
 .sign-row{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:60px;}
 .sign-block .line{border-top:1px solid #1a1a1a;margin-top:36px;padding-top:6px;font-size:11px;color:#555;}
 
+@page{ size:A4; margin:12mm; }
 @media print{
-  body *{visibility:hidden;}
-  .overlay,.overlay *{visibility:visible;}
-  .overlay{position:absolute;inset:auto;padding:0;background:none;}
+  html,body{height:auto;}
+  .app{display:none !important;}
+  .overlay{
+    position:static;
+    inset:auto;
+    padding:0;
+    margin:0;
+    background:none;
+    display:block;
+  }
+  .doc-outer{
+    display:block;
+    width:100%;
+  }
   .doc-toolbar{display:none;}
-  .doc{box-shadow:none;width:auto;padding:10mm 12mm;}
+  .doc{
+    box-shadow:none;
+    width:100%;
+    max-width:none;
+    min-height:0;
+    margin:0;
+    padding:0;
+  }
 }
 </style>
 </head>
@@ -258,7 +278,7 @@ table.spec td input{padding:7px 8px;font-size:13px;}
    PODEŠAVANJE: nalepi URL svog Google Apps Script Web App-a ovde.
    Uputstvo kako da ga dobiješ nalazi se u fajlu UPUTSTVO.md
    ======================================================================== */
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx7xQ3BCzyKnsvB9QP1zN8CnGazxFA49cwXXMUe1C9urRn1X0Ed4N-r3UcNQSFfrVLMnQ/exec";
+const SCRIPT_URL = "PASTE_YOUR_APPS_SCRIPT_URL_HERE";
 
 let DATA = { requests: [] };
 let specRows = [];
@@ -306,7 +326,7 @@ function renderSpecRows(){
   specRows.forEach((row, idx) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td class="col-opis"><input type="text" data-id="${row.id}" data-field="opis" value="${escapeHtml(row.opis)}" placeholder="npr. Kabl PP00 5X2,5mm2"></td>
+      <td class="col-opis"><input type="text" data-id="${row.id}" data-field="opis" value="${escapeHtml(row.opis)}" placeholder="npr. Cementna malterna mešavina"></td>
       <td class="col-jm"><input type="text" data-id="${row.id}" data-field="jm" value="${escapeHtml(row.jm)}" placeholder="kom / m / kg"></td>
       <td class="col-kol"><input type="number" min="0" step="any" data-id="${row.id}" data-field="kolicina" value="${escapeHtml(row.kolicina)}" placeholder="0"></td>
       <td class="col-del">${specRows.length>1 ? `<button type="button" class="rm-btn" data-rm="${row.id}" title="Ukloni stavku">×</button>` : ''}</td>
@@ -428,7 +448,7 @@ function openDoc(id){
   `).join('');
   $('modalRoot').innerHTML = `
     <div class="overlay" id="overlay">
-      <div style="display:flex;flex-direction:column;align-items:center;">
+      <div class="doc-outer">
         <div class="doc-toolbar">
           <button class="btn-ghost" id="closeDoc">Zatvori</button>
           <button class="btn btn-primary" style="width:auto;" id="printDoc">Štampaj / sačuvaj PDF</button>
