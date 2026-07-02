@@ -111,9 +111,18 @@ table.spec td{padding:4px 6px 4px 0;vertical-align:top;}
 table.spec td input{padding:7px 8px;font-size:13px;}
 .col-rb{width:28px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:12.5px;text-align:center;padding-top:11px;}
 .col-opis{width:auto;}
-.col-jm{width:90px;}
-.col-kol{width:90px;}
+.col-jm{width:80px;}
+.col-kol{width:75px;}
+.col-od{width:85px;}
+.col-zan{width:85px;}
+.col-rok{width:130px;}
+.col-atest{width:75px;}
 .col-del{width:30px;}
+.zan-val{
+  display:block;padding:7px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;
+  font-weight:600;color:var(--steel-dark);background:#EEF0E9;border-radius:var(--radius);
+  text-align:right;
+}
 .rm-btn{
   background:none;border:none;color:var(--danger);cursor:pointer;font-size:16px;
   line-height:1;padding:6px;border-radius:var(--radius);
@@ -253,10 +262,22 @@ table.spec td input{padding:7px 8px;font-size:13px;}
 
       <div class="field">
         <label>Specifikacija</label>
+        <div style="overflow-x:auto;">
         <table class="spec">
-          <thead><tr><th class="col-rb">Rb.</th><th class="col-opis">Opis</th><th class="col-jm">Jed. mere</th><th class="col-kol">Količina</th><th class="col-del"></th></tr></thead>
+          <thead><tr>
+            <th class="col-rb">Rb.</th>
+            <th class="col-opis">Opis</th>
+            <th class="col-jm">Jed. mere</th>
+            <th class="col-kol">Količina</th>
+            <th class="col-od">Od postojećeg</th>
+            <th class="col-zan">Za nabavku</th>
+            <th class="col-rok">Krajnji rok isporuke</th>
+            <th class="col-atest">Atest</th>
+            <th class="col-del"></th>
+          </tr></thead>
           <tbody id="specBody"></tbody>
         </table>
+        </div>
         <button type="button" class="add-row" id="addRowBtn">+ Dodaj stavku</button>
         <div class="err" id="errSpec"></div>
       </div>
@@ -414,7 +435,7 @@ $('gradiliste').addEventListener('change', ()=>{
 
 function uid(){ return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 
-function newSpecRow(){ return { id: uid(), opis:'', jm:'', kolicina:'' }; }
+function newSpecRow(){ return { id: uid(), opis:'', jm:'', kolicina:'', odPostojeceg:'', rok:'', atest:'' }; }
 
 let nextBrojPreview = null;
 let editingId = null;
@@ -452,6 +473,16 @@ async function refreshNextBrojPreview(){
   }
 }
 
+function zaNabavkuValue(row){
+  const kol = parseFloat(row.kolicina);
+  const od = parseFloat(row.odPostojeceg);
+  const k = isNaN(kol) ? 0 : kol;
+  const o = isNaN(od) ? 0 : od;
+  const diff = k - o;
+  // ukloni sitne greške zaokruživanja (npr. 0.30000000000000004)
+  return Math.round(diff * 1000) / 1000;
+}
+
 function renderSpecRows(){
   const body = $('specBody');
   body.innerHTML = '';
@@ -462,14 +493,29 @@ function renderSpecRows(){
       <td class="col-opis"><input type="text" data-id="${row.id}" data-field="opis" value="${escapeHtml(row.opis)}" placeholder="npr. Cementna malterna mešavina"></td>
       <td class="col-jm"><input type="text" data-id="${row.id}" data-field="jm" value="${escapeHtml(row.jm)}" placeholder="kom / m / kg"></td>
       <td class="col-kol"><input type="number" min="0" step="any" data-id="${row.id}" data-field="kolicina" value="${escapeHtml(row.kolicina)}" placeholder="0"></td>
+      <td class="col-od"><input type="number" min="0" step="any" data-id="${row.id}" data-field="odPostojeceg" value="${escapeHtml(row.odPostojeceg)}" placeholder="0"></td>
+      <td class="col-zan"><span class="zan-val" data-zan="${row.id}">${zaNabavkuValue(row)}</span></td>
+      <td class="col-rok"><input type="date" data-id="${row.id}" data-field="rok" value="${escapeHtml(row.rok)}"></td>
+      <td class="col-atest">
+        <select data-id="${row.id}" data-field="atest">
+          <option value="" ${row.atest===''?'selected':''}>—</option>
+          <option value="DA" ${row.atest==='DA'?'selected':''}>DA</option>
+          <option value="NE" ${row.atest==='NE'?'selected':''}>NE</option>
+        </select>
+      </td>
       <td class="col-del">${specRows.length>1 ? `<button type="button" class="rm-btn" data-rm="${row.id}" title="Ukloni stavku">×</button>` : ''}</td>
     `;
     body.appendChild(tr);
   });
-  body.querySelectorAll('input').forEach(inp=>{
+  body.querySelectorAll('input, select').forEach(inp=>{
     inp.addEventListener('input', e=>{
       const row = specRows.find(r=>r.id===e.target.dataset.id);
-      if(row) row[e.target.dataset.field] = e.target.value;
+      if(!row) return;
+      row[e.target.dataset.field] = e.target.value;
+      if(e.target.dataset.field === 'kolicina' || e.target.dataset.field === 'odPostojeceg'){
+        const zan = body.querySelector(`[data-zan="${row.id}"]`);
+        if(zan) zan.textContent = zaNabavkuValue(row);
+      }
     });
   });
   body.querySelectorAll('[data-rm]').forEach(btn=>{
@@ -522,7 +568,7 @@ function openEdit(id){
   $('nalogOpis').textContent = nazivNaloga(r.nalog) || '\u00A0';
 
   specRows = r.stavke.length
-    ? r.stavke.map(s => ({ id: uid(), opis: s.opis, jm: s.jm, kolicina: s.kolicina }))
+    ? r.stavke.map(s => ({ id: uid(), opis: s.opis, jm: s.jm, kolicina: s.kolicina, odPostojeceg: s.odPostojeceg || '', rok: s.rok || '', atest: s.atest || '' }))
     : [newSpecRow()];
   renderSpecRows();
 
@@ -617,11 +663,27 @@ function renderList(){
   }));
 }
 
+function formatDatumSr(iso){
+  if(!iso) return '—';
+  const parts = String(iso).split('-');
+  if(parts.length !== 3) return iso;
+  return `${parts[2]}.${parts[1]}.${parts[0]}.`;
+}
+
 function openDoc(id){
   const r = DATA.requests.find(x=>x.id===id);
   if(!r) return;
   const totalRow = r.stavke.map((s, idx) => `
-    <tr><td style="width:30px;color:#777;">${idx+1}</td><td>${escapeHtml(s.opis)}</td><td>${escapeHtml(s.jm)}</td><td class="num">${escapeHtml(s.kolicina)}</td></tr>
+    <tr>
+      <td style="width:26px;color:#777;">${idx+1}</td>
+      <td>${escapeHtml(s.opis)}</td>
+      <td>${escapeHtml(s.jm)}</td>
+      <td class="num">${escapeHtml(s.kolicina)}</td>
+      <td class="num">${escapeHtml(s.odPostojeceg || '0')}</td>
+      <td class="num" style="font-weight:600;">${escapeHtml(s.zaNabavku !== undefined ? s.zaNabavku : '')}</td>
+      <td>${escapeHtml(formatDatumSr(s.rok))}</td>
+      <td style="text-align:center;">${escapeHtml(s.atest || '—')}</td>
+    </tr>
   `).join('');
   $('modalRoot').innerHTML = `
     <div class="overlay" id="overlay">
@@ -637,10 +699,18 @@ function openDoc(id){
             <div><div class="k">Redni broj</div><div class="v">${escapeHtml(r.redniBroj)}</div></div>
             <div><div class="k">Nalog za realizaciju</div><div class="v">${escapeHtml(r.nalog)}${nazivNaloga(r.nalog) ? '<br><span style="font-size:11px;font-weight:500;color:#555;">' + escapeHtml(nazivNaloga(r.nalog)) + '</span>' : ''}</div></div>
             <div><div class="k">Oznaka gradilišta</div><div class="v">${escapeHtml(r.gradiliste)} — ${escapeHtml(nazivGradilista(r.gradiliste))}</div></div>
-            <div><div class="k">Godina</div><div class="v">${escapeHtml(r.godina)}</div></div>
           </div>
-          <table>
-            <thead><tr><th style="width:30px;">Rb.</th><th>Opis</th><th>Jedinica mere</th><th style="text-align:right;">Količina</th></tr></thead>
+          <table style="font-size:11.5px;">
+            <thead><tr>
+              <th style="width:26px;">Rb.</th>
+              <th>Opis</th>
+              <th>Jed. mere</th>
+              <th style="text-align:right;">Količina</th>
+              <th style="text-align:right;">Od postojećeg</th>
+              <th style="text-align:right;">Za nabavku</th>
+              <th>Rok isporuke</th>
+              <th style="text-align:center;">Atest</th>
+            </tr></thead>
             <tbody>${totalRow}</tbody>
           </table>
           <div class="sign-row">
@@ -673,7 +743,15 @@ $('saveBtn').addEventListener('click', async ()=>{
   const g = $('gradiliste').value;
   const nalog = $('nalog').value.trim();
   const validRows = specRows.filter(r => r.opis.trim() && r.jm.trim() && r.kolicina !== '' && !isNaN(parseFloat(r.kolicina)))
-    .map(r => ({ opis: r.opis.trim(), jm: r.jm.trim(), kolicina: r.kolicina }));
+    .map(r => ({
+      opis: r.opis.trim(),
+      jm: r.jm.trim(),
+      kolicina: r.kolicina,
+      odPostojeceg: r.odPostojeceg,
+      zaNabavku: zaNabavkuValue(r),
+      rok: r.rok,
+      atest: r.atest
+    }));
 
   try{
     if(wasEditing){
