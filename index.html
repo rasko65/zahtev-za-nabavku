@@ -233,8 +233,11 @@ table.spec td input{padding:7px 8px;font-size:13px;}
 
       <div class="row2">
         <div class="field">
-          <label for="gradiliste">Oznaka gradilišta (901–999)</label>
-          <input type="number" id="gradiliste" min="901" max="999" placeholder="npr. 915">
+          <label for="gradiliste">Oznaka gradilišta</label>
+          <select id="gradiliste">
+            <option value="">— izaberi gradilište —</option>
+          </select>
+          <div class="hint" id="gradilisteNaziv">&nbsp;</div>
         </div>
         <div class="field">
           <label for="godina">Godina</label>
@@ -309,6 +312,46 @@ const $ = id => document.getElementById(id);
 const yy = new Date().getFullYear().toString().slice(-2);
 $('godina').value = yy;
 
+const GRADILISTA = [
+  { code:'901', naziv:'DIREKCIJA' },
+  { code:'902', naziv:'OBRENOVAC' },
+  { code:'907', naziv:'KOSTOLAC' },
+  { code:'908', naziv:'MORAVA SVILAJNAC' },
+  { code:'909', naziv:'LABORATORIJA' },
+  { code:'910', naziv:'Beograd' },
+  { code:'911', naziv:'PANČEVO' },
+  { code:'913', naziv:'PODGORICA' },
+  { code:'914', naziv:'OBRENOVAC - Odsumporavanje' },
+  { code:'915', naziv:'Projektovanje' },
+  { code:'919', naziv:'KOSTOLAC - NIŠ - materijal' },
+  { code:'924', naziv:'EXPO' },
+  { code:'925', naziv:'NOVI SAD' },
+  { code:'927', naziv:'KOLUBARA A' },
+  { code:'928', naziv:'KOLUBARA B' },
+  { code:'932', naziv:'CENTRALNI MAGACIN' }
+];
+
+function nazivGradilista(code){
+  const g = GRADILISTA.find(x => x.code === String(code));
+  return g ? g.naziv : '';
+}
+
+function populateGradilisteSelect(){
+  const sel = $('gradiliste');
+  GRADILISTA.forEach(g => {
+    const opt = document.createElement('option');
+    opt.value = g.code;
+    opt.textContent = `${g.code} — ${g.naziv}`;
+    sel.appendChild(opt);
+  });
+}
+populateGradilisteSelect();
+
+$('gradiliste').addEventListener('change', ()=>{
+  const naziv = nazivGradilista($('gradiliste').value);
+  $('gradilisteNaziv').textContent = naziv || '\u00A0';
+});
+
 function uid(){ return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 
 function newSpecRow(){ return { id: uid(), opis:'', jm:'', kolicina:'' }; }
@@ -351,6 +394,7 @@ function escapeHtml(s){ return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;
 
 function resetForm(){
   $('gradiliste').value = '';
+  $('gradilisteNaziv').textContent = '\u00A0';
   $('nalog').value = '';
   $('errGradiliste').textContent = '';
   $('errNalog').textContent = '';
@@ -362,13 +406,13 @@ function resetForm(){
 
 function validate(){
   let ok = true;
-  const g = parseInt($('gradiliste').value, 10);
+  const g = $('gradiliste').value;
   $('errGradiliste').textContent = '';
   $('errNalog').textContent = '';
   $('errSpec').textContent = '';
 
-  if(!g || g < 901 || g > 999){
-    $('errGradiliste').textContent = 'Unesite broj gradilišta od 901 do 999.';
+  if(!g || !GRADILISTA.some(x => x.code === g)){
+    $('errGradiliste').textContent = 'Izaberite gradilište sa liste.';
     ok = false;
   }
   const nalog = $('nalog').value.trim();
@@ -416,7 +460,7 @@ function renderList(){
         <span class="item-code">${escapeHtml(r.redniBroj)}</span>
         <span class="item-date">${new Date(r.createdAt).toLocaleDateString('sr-RS')}</span>
       </div>
-      <div class="item-nalog">Nalog za realizaciju: ${escapeHtml(r.nalog)} · ${r.stavke.length} stavk${r.stavke.length===1?'a':(r.stavke.length<5?'e':'i')}</div>
+      <div class="item-nalog">Gradilište: ${escapeHtml(nazivGradilista(r.gradiliste) || r.gradiliste)} · Nalog za realizaciju: ${escapeHtml(r.nalog)} · ${r.stavke.length} stavk${r.stavke.length===1?'a':(r.stavke.length<5?'e':'i')}</div>
       <div class="item-actions">
         <button class="btn-ghost" data-view="${r.id}">Prikaži / štampaj</button>
         <button class="btn-ghost" data-del="${r.id}">Obriši</button>
@@ -459,7 +503,7 @@ function openDoc(id){
           <div class="doc-meta">
             <div><div class="k">Redni broj</div><div class="v">${escapeHtml(r.redniBroj)}</div></div>
             <div><div class="k">Nalog za realizaciju</div><div class="v">${escapeHtml(r.nalog)}</div></div>
-            <div><div class="k">Oznaka gradilišta</div><div class="v">${escapeHtml(r.gradiliste)}</div></div>
+            <div><div class="k">Oznaka gradilišta</div><div class="v">${escapeHtml(r.gradiliste)} — ${escapeHtml(nazivGradilista(r.gradiliste))}</div></div>
             <div><div class="k">Godina</div><div class="v">${escapeHtml(r.godina)}</div></div>
           </div>
           <table>
@@ -491,14 +535,14 @@ $('saveBtn').addEventListener('click', async ()=>{
   $('saveBtn').disabled = true;
   $('saveBtn').textContent = 'Čuvanje…';
 
-  const g = parseInt($('gradiliste').value, 10);
+  const g = $('gradiliste').value;
   const nalog = $('nalog').value.trim();
   const validRows = specRows.filter(r => r.opis.trim() && r.jm.trim() && r.kolicina !== '' && !isNaN(parseFloat(r.kolicina)))
     .map(r => ({ opis: r.opis.trim(), jm: r.jm.trim(), kolicina: r.kolicina }));
 
   try{
     const result = await apiAdd({
-      gradiliste: String(g),
+      gradiliste: g,
       godina: yy,
       nalog,
       stavke: validRows
