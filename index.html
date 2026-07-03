@@ -251,6 +251,13 @@ table.spec td input{padding:7px 8px;font-size:13px;}
       </div>
       <div class="err" id="errGradiliste"></div>
 
+      <div class="field" style="max-width:220px;">
+        <label for="redniBrojManual">Redni broj</label>
+        <input type="number" id="redniBrojManual" min="1" step="1" placeholder="npr. 7">
+        <div class="hint">Automatski predložen sledeći broj — može se ručno promeniti (mora biti slobodan).</div>
+        <div class="err" id="errBroj"></div>
+      </div>
+
       <div class="field" style="max-width:480px;">
         <label for="nalog">Nalog za realizaciju</label>
         <select id="nalog">
@@ -452,7 +459,12 @@ function renderPlate(){
   const g = $('gradiliste').value.trim();
   $('plateGradiliste').textContent = g ? g : '—';
   $('plateGodina').textContent = yy;
-  $('plateBroj').textContent = nextBrojPreview ? String(nextBrojPreview).padStart(3,'0') : '···';
+  const manual = $('redniBrojManual').value.trim();
+  if(manual){
+    $('plateBroj').textContent = String(parseInt(manual,10) || 0).padStart(3,'0');
+  }else{
+    $('plateBroj').textContent = nextBrojPreview ? String(nextBrojPreview).padStart(3,'0') : '···';
+  }
 }
 
 async function refreshNextBrojPreview(){
@@ -467,6 +479,7 @@ async function refreshNextBrojPreview(){
     const data = await apiPeek(g);
     if(data && data.next){
       nextBrojPreview = data.next;
+      $('redniBrojManual').value = data.next;
       renderPlate();
     }
   }catch(e){
@@ -534,11 +547,14 @@ function resetForm(){
   editingId = null;
   editingRedniBrojParts = null;
   $('gradiliste').disabled = false;
+  $('redniBrojManual').disabled = false;
   $('saveBtn').textContent = 'Sačuvaj zahtev';
   $('cancelEditBtn').style.display = 'none';
 
   $('gradiliste').value = '';
   $('gradilisteNaziv').textContent = '\u00A0';
+  $('redniBrojManual').value = '';
+  $('errBroj').textContent = '';
   $('nalog').value = '';
   $('nalogOpis').textContent = '\u00A0';
   $('errGradiliste').textContent = '';
@@ -566,6 +582,9 @@ function openEdit(id){
   $('gradiliste').disabled = true;
   $('gradilisteNaziv').textContent = (nazivGradilista(r.gradiliste) || r.gradiliste) + ' — ne može se menjati nakon kreiranja';
 
+  $('redniBrojManual').value = parseInt(editingRedniBrojParts.broj, 10) || '';
+  $('redniBrojManual').disabled = true;
+
   $('nalog').value = r.nalog;
   $('nalogOpis').textContent = nazivNaloga(r.nalog) || '\u00A0';
 
@@ -586,12 +605,23 @@ function validate(){
   let ok = true;
   const g = $('gradiliste').value;
   $('errGradiliste').textContent = '';
+  $('errBroj').textContent = '';
   $('errNalog').textContent = '';
   $('errSpec').textContent = '';
 
   if(!g || !GRADILISTA.some(x => x.code === g)){
     $('errGradiliste').textContent = 'Izaberite gradilište sa liste.';
     ok = false;
+  }
+  if(!editingId){
+    const brojVal = $('redniBrojManual').value.trim();
+    if(brojVal !== ''){
+      const brojNum = parseInt(brojVal, 10);
+      if(!Number.isInteger(brojNum) || brojNum < 1 || String(brojNum) !== brojVal){
+        $('errBroj').textContent = 'Redni broj mora biti pozitivan ceo broj.';
+        ok = false;
+      }
+    }
   }
   const nalog = $('nalog').value;
   if(!NALOZI.some(x => x.code === nalog)){
@@ -733,6 +763,7 @@ function openDoc(id){
 }
 
 $('gradiliste').addEventListener('input', renderPlate);
+$('redniBrojManual').addEventListener('input', renderPlate);
 $('addRowBtn').addEventListener('click', ()=>{ specRows.push(newSpecRow()); renderSpecRows(); });
 $('cancelEditBtn').addEventListener('click', ()=> resetForm());
 
@@ -769,15 +800,20 @@ $('saveBtn').addEventListener('click', async ()=>{
         renderList();
         resetForm();
       }else{
-        throw new Error('Neispravan odgovor servera.');
+        throw new Error(result && result.error ? result.error : 'Neispravan odgovor servera.');
       }
     }else{
-      const result = await apiAdd({
+      const brojVal = $('redniBrojManual').value.trim();
+      const payload = {
         gradiliste: g,
         godina: yy,
         nalog,
         stavke: validRows
-      });
+      };
+      if(brojVal !== ''){
+        payload.broj = parseInt(brojVal, 10);
+      }
+      const result = await apiAdd(payload);
       if(result && result.request){
         DATA.requests.push(result.request);
         $('countTag').textContent = DATA.requests.length + ' zahteva evidentirano';
@@ -785,11 +821,15 @@ $('saveBtn').addEventListener('click', async ()=>{
         resetForm();
         refreshNextBrojPreview();
       }else{
-        throw new Error('Neispravan odgovor servera.');
+        throw new Error(result && result.error ? result.error : 'Neispravan odgovor servera.');
       }
     }
   }catch(err){
-    alert(wasEditing ? 'Čuvanje izmena nije uspelo. Proveri internet konekciju, pa pokušaj ponovo.' : 'Čuvanje nije uspelo. Proveri internet konekciju i SCRIPT_URL, pa pokušaj ponovo.');
+    if(!wasEditing && err && err.message && err.message.toLowerCase().includes('zauzet')){
+      $('errBroj').textContent = err.message;
+    }else{
+      alert(wasEditing ? 'Čuvanje izmena nije uspelo. Proveri internet konekciju, pa pokušaj ponovo.' : 'Čuvanje nije uspelo. Proveri internet konekciju i SCRIPT_URL, pa pokušaj ponovo.');
+    }
   }
   $('saveBtn').disabled = false;
   $('saveBtn').textContent = editingId ? 'Sačuvaj izmene' : 'Sačuvaj zahtev';
